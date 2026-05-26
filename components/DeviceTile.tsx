@@ -34,15 +34,12 @@ export default function DeviceTile({
       return;
     }
 
-    if (!incidentId) {
-      toast.error("Please start a conversation first by clicking the tile");
-      e.target.value = "";
-      return;
-    }
-
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("incidentId", incidentId);
+    formData.append("tileType", label);
+    if (incidentId) {
+      formData.append("incidentId", incidentId);
+    }
 
     const toastId = toast.loading("Uploading document...");
     try {
@@ -51,7 +48,7 @@ export default function DeviceTile({
       if (!res.ok) {
         toast.error(data.error || "Upload failed", { id: toastId });
       } else {
-        toast.success("Document uploaded successfully", { id: toastId });
+        toast.success("Document uploaded and text extracted successfully", { id: toastId });
         onFileUploaded(file.name);
       }
     } catch {
@@ -101,7 +98,6 @@ export default function DeviceTile({
           className="hidden"
           onChange={handleFileChange}
           data-testid={`device-tile-file-input-${label.toLowerCase().replace(/\s+/g, "-")}`}
-          multiple
         />
       </div>
     </div>

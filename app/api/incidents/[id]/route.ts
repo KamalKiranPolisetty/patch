@@ -48,8 +48,8 @@ export async function PATCH(
 
   const body = await req.json();
   const allowed = [
-    "status", "isResolved", "resolutionMethod", "resolutionNotes",
-    "feedbackRating", "feedbackText", "priority", "urgency", "impact",
+    "status", "isResolved", "resolutionType", "resolutionMethod", "resolutionNotes",
+    "resolvedBy", "feedbackRating", "feedbackText", "priority", "urgency", "impact",
   ];
   for (const key of allowed) {
     if (body[key] !== undefined) {

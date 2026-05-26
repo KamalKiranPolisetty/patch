@@ -22,7 +22,11 @@ export default function Navbar({ username }: NavbarProps) {
       className="fixed top-0 left-0 right-0 z-50 bg-blue-700 text-white shadow-md"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-        <div className="flex items-center gap-3" data-testid="navbar-brand">
+        <Link
+          href="/"
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          data-testid="navbar-brand"
+        >
           <svg
             data-testid="navbar-logo"
             width="32"
@@ -42,7 +46,7 @@ export default function Navbar({ username }: NavbarProps) {
           <span className="text-xl font-bold tracking-tight" data-testid="navbar-title">
             Patch
           </span>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-6" data-testid="navbar-right">
           {username && (

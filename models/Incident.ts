@@ -1,7 +1,8 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-export type IncidentStatus = "in_progress" | "escalated" | "resolved";
+export type IncidentStatus = "opened" | "in_progress" | "escalated" | "resolved";
 export type Priority = "Low" | "Med" | "High";
+export type ResolutionType = "AI_AGENT" | "MANUAL";
 
 export interface IIncident extends Document {
   userId: mongoose.Types.ObjectId;
@@ -9,8 +10,10 @@ export interface IIncident extends Document {
   status: IncidentStatus;
   description: string;
   isResolved: boolean;
+  resolutionType?: ResolutionType;
   resolutionMethod?: string;
   resolutionNotes?: string;
+  resolvedBy?: string;
   feedbackRating?: number;
   feedbackText?: string;
   priority?: Priority;
@@ -24,13 +27,15 @@ const IncidentSchema = new Schema<IIncident>(
     createdAt: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ["in_progress", "escalated", "resolved"],
+      enum: ["opened", "in_progress", "escalated", "resolved"],
       default: "in_progress",
     },
     description: { type: String, required: true },
     isResolved: { type: Boolean, default: false },
+    resolutionType: { type: String, enum: ["AI_AGENT", "MANUAL"] },
     resolutionMethod: { type: String },
     resolutionNotes: { type: String },
+    resolvedBy: { type: String },
     feedbackRating: { type: Number },
     feedbackText: { type: String },
     priority: { type: String, enum: ["Low", "Med", "High"] },

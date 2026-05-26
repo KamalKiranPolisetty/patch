@@ -13,9 +13,10 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
   const incidentId = formData.get("incidentId") as string | null;
+  const tileType = formData.get("tileType") as string | null;
 
-  if (!file || !incidentId) {
-    return NextResponse.json({ error: "file and incidentId are required" }, { status: 400 });
+  if (!file) {
+    return NextResponse.json({ error: "file is required" }, { status: 400 });
   }
 
   if (file.type !== "application/pdf") {
@@ -24,10 +25,13 @@ export async function POST(req: NextRequest) {
 
   await connectToDatabase();
 
-  const incident = await Incident.findById(incidentId);
-  if (!incident) return NextResponse.json({ error: "Incident not found" }, { status: 404 });
-  if (incident.userId.toString() !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  // If incidentId is provided, verify ownership
+  if (incidentId) {
+    const incident = await Incident.findById(incidentId);
+    if (!incident) return NextResponse.json({ error: "Incident not found" }, { status: 404 });
+    if (incident.userId.toString() !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -43,17 +47,31 @@ export async function POST(req: NextRequest) {
       const content = await page.getTextContent();
       parts.push(content.items.map((item) => ("str" in item ? item.str : "")).join(" "));
     }
-    extractedText = parts.join("\n");
+    extractedText = parts.join("\n").trim();
   } catch {
-    extractedText = "";
+    return NextResponse.json({ error: "Could not read PDF. The file may be corrupted." }, { status: 422 });
   }
 
-  const doc = await IncidentDocument.create({
-    incidentId,
+  // Reject if PDF has no readable text (non-blank file)
+  if (!extractedText) {
+    return NextResponse.json({ error: "PDF appears to contain no readable text." }, { status: 422 });
+  }
+
+  const docData: Record<string, unknown> = {
     fileName: file.name,
     extractedText,
     createdAt: new Date(),
-  });
+  };
+
+  if (incidentId) {
+    docData.incidentId = incidentId;
+  } else {
+    // Pre-chat upload: associate with user and tile type
+    docData.userId = session.user.id;
+    docData.tileType = tileType || "General";
+  }
+
+  const doc = await IncidentDocument.create(docData);
 
   return NextResponse.json({ message: "File uploaded successfully", documentId: doc._id }, { status: 201 });
 }
