@@ -12,6 +12,8 @@ export default function FeedbackModal({ incidentId, onClose }: FeedbackModalProp
   const [rating, setRating] = useState<number | null>(null);
   const [feedbackText, setFeedbackText] = useState("");
   const [resolutionNotes, setResolutionNotes] = useState("");
+  const [resolutionType, setResolutionType] = useState<"AI_AGENT" | "MANUAL">("AI_AGENT");
+  const [resolvedBy, setResolvedBy] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [ratingError, setRatingError] = useState(false);
 
@@ -30,7 +32,9 @@ export default function FeedbackModal({ incidentId, onClose }: FeedbackModalProp
         body: JSON.stringify({
           status: "resolved",
           isResolved: true,
-          resolutionMethod: "AI Agent",
+          resolutionType,
+          resolutionMethod: resolutionType === "AI_AGENT" ? "Patch Agent" : "Manual",
+          resolvedBy: resolutionType === "AI_AGENT" ? "Patch Agent" : resolvedBy.trim() || "Unknown",
           resolutionNotes,
           feedbackRating: rating,
           feedbackText,
@@ -67,6 +71,56 @@ export default function FeedbackModal({ incidentId, onClose }: FeedbackModalProp
           Please provide feedback before we close this incident.
         </p>
 
+        {/* Resolution type */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            How was this resolved? *
+          </label>
+          <div className="flex gap-3" data-testid="resolution-type-group">
+            <button
+              data-testid="resolution-type-ai"
+              onClick={() => setResolutionType("AI_AGENT")}
+              className={`flex-1 py-2 rounded-lg border-2 text-sm font-semibold transition-colors ${
+                resolutionType === "AI_AGENT"
+                  ? "bg-blue-600 border-blue-600 text-white"
+                  : "border-gray-300 text-gray-600 hover:border-blue-400"
+              }`}
+            >
+              Patch Agent (AI)
+            </button>
+            <button
+              data-testid="resolution-type-manual"
+              onClick={() => setResolutionType("MANUAL")}
+              className={`flex-1 py-2 rounded-lg border-2 text-sm font-semibold transition-colors ${
+                resolutionType === "MANUAL"
+                  ? "bg-blue-600 border-blue-600 text-white"
+                  : "border-gray-300 text-gray-600 hover:border-blue-400"
+              }`}
+            >
+              Manual (Human)
+            </button>
+          </div>
+        </div>
+
+        {/* Resolved by (only for manual) */}
+        {resolutionType === "MANUAL" && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="resolved-by">
+              Resolved by (name or role)
+            </label>
+            <input
+              id="resolved-by"
+              data-testid="feedback-resolved-by"
+              type="text"
+              value={resolvedBy}
+              onChange={(e) => setResolvedBy(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. John Smith or IT Admin"
+            />
+          </div>
+        )}
+
+        {/* Rating */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             How satisfied are you with the resolution? *

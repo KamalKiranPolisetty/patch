@@ -3,6 +3,7 @@ interface IncidentTimelineProps {
 }
 
 const STEPS = [
+  { key: "opened", label: "Opened" },
   { key: "in_progress", label: "In Progress" },
   { key: "escalated", label: "Escalated" },
   { key: "resolved", label: "Resolved" },
@@ -10,7 +11,8 @@ const STEPS = [
 
 function getStepIndex(status: string) {
   const idx = STEPS.findIndex((s) => s.key === status);
-  return idx === -1 ? 0 : idx;
+  // treat unknown statuses as in_progress (index 1) for backwards compat
+  return idx === -1 ? 1 : idx;
 }
 
 export default function IncidentTimeline({ status }: IncidentTimelineProps) {
@@ -26,7 +28,7 @@ export default function IncidentTimeline({ status }: IncidentTimelineProps) {
           <div key={step.key} className="flex items-center" data-testid={`timeline-step-${step.key}`}>
             <div className="flex flex-col items-center">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
                   isCompleted
                     ? "bg-blue-600 border-blue-600 text-white"
                     : isCurrent
@@ -48,7 +50,7 @@ export default function IncidentTimeline({ status }: IncidentTimelineProps) {
             </div>
             {idx < STEPS.length - 1 && (
               <div
-                className={`h-0.5 w-16 mx-1 mb-5 ${isCompleted ? "bg-blue-600" : "bg-gray-200"}`}
+                className={`h-0.5 w-10 mx-1 mb-5 ${isCompleted ? "bg-blue-600" : "bg-gray-200"}`}
                 data-testid={`timeline-connector-${idx}`}
               />
             )}

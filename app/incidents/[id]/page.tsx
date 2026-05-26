@@ -18,7 +18,9 @@ interface Incident {
   priority?: string;
   urgency?: string;
   impact?: string;
+  resolutionType?: string;
   resolutionMethod?: string;
+  resolvedBy?: string;
   feedbackRating?: number;
 }
 
@@ -190,6 +192,18 @@ export default function IncidentDetailPage({
                 <td className="py-2 pr-3 text-gray-500 font-medium">Created</td>
                 <td className="py-2 text-gray-700">{new Date(incident.createdAt).toLocaleString()}</td>
               </tr>
+              <tr data-testid="incident-detail-resolution-state">
+                <td className="py-2 pr-3 text-gray-500 font-medium">Resolution State</td>
+                <td className="py-2 text-gray-700">
+                  {isResolved ? "Resolved" : incident.status === "escalated" ? "Awaiting Agent" : "In Progress"}
+                </td>
+              </tr>
+              {isResolved && (
+                <tr data-testid="incident-detail-resolved-by">
+                  <td className="py-2 pr-3 text-gray-500 font-medium">Resolved By</td>
+                  <td className="py-2 text-gray-700">{incident.resolvedBy || incident.resolutionMethod || "—"}</td>
+                </tr>
+              )}
             </tbody>
           </table>
 

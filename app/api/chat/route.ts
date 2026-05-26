@@ -58,12 +58,17 @@ export async function POST(req: NextRequest) {
   // Persist user message
   await Conversation.create({ incidentId, role: "user", content: message, timestamp: new Date() });
 
-  // Retrieve relevant document context (keyword-based)
+  // Retrieve relevant document context (keyword-based) — incident docs + pre-chat user docs
   const words = message.split(/\s+/).filter((w: string) => w.length > 3);
   const regex = words.length ? new RegExp(words.slice(0, 5).join("|"), "i") : null;
-  const docs = regex
-    ? await IncidentDocument.find({ incidentId, extractedText: regex }).limit(3)
-    : [];
+  const tileType = incident.description.match(/my (.+)$/i)?.[1] || null;
+  const [incidentDocs, preChatDocs] = await Promise.all([
+    regex ? IncidentDocument.find({ incidentId, extractedText: regex }).limit(3) : Promise.resolve([]),
+    regex && tileType
+      ? IncidentDocument.find({ userId: session.user.id, tileType, extractedText: regex }).limit(2)
+      : Promise.resolve([]),
+  ]);
+  const docs = [...incidentDocs, ...preChatDocs];
   const context = docs.map((d) => d.extractedText.slice(0, 1000)).join("\n\n");
 
   // Retrieve conversation history
